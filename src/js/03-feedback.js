@@ -3,31 +3,36 @@ import '../css/common.css';
 import '../css/03-feedback.css';
 
 const STORAGE_KEY = 'feedback-form-state';
-const refs = {
-  form: document.querySelector('.feedback-form'),
-  textarea: document.querySelector('.feedback-form textarea'),
-};
-refs.form.addEventListener('submit', onFormSubmit);
-refs.textarea.addEventListener('input', throttle(onTextareaInput, 500));
+const formData = {};
 
-populateTextarea();
+const refs = document.querySelector('.feedback-form');
+
+refs.addEventListener('input', throttle(onFormInput, 500));
+refs.addEventListener('submit', onFormSubmit);
+
+function onFormInput(evt) {
+  formData[evt.target.name] = evt.target.value;
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(formData));
+}
 
 function onFormSubmit(evt) {
   evt.preventDefault();
-  console.log('Отправляем форму');
   evt.currentTarget.reset();
   localStorage.removeItem(STORAGE_KEY);
+  console.log(formData);
 }
 
-function onTextareaInput(evt) {
-  const message = evt.target.value;
-  localStorage.setItem(STORAGE_KEY, message);
-}
+initForm();
 
-function populateTextarea() {
-  const savedMessage = localStorage.getItem(STORAGE_KEY);
-  if (savedMessage) {
-    console.log(savedMessage);
-    refs.textarea.value = savedMessage;
+function initForm() {
+  let savedData = localStorage.getItem(STORAGE_KEY);
+
+  if (savedData) {
+    savedData = JSON.parse(savedData);
+    Object.entries(savedData).forEach(([name, value]) => {
+      formData[name] = value;
+      refs.elements[name].value = value;
+    });
   }
 }
